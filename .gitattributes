@@ -1,13 +1,17 @@
-# 禁止对 .gitattributes 文件进行行尾符转换
-.gitattributes text eol=lf
-
 # 禁用自动行尾符转换
 * -text
 
-# 对特定文件类型设置行尾符为 LF
+# 强制特定文件使用 LF 结尾
 *.sh text eol=lf
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf
 *.txt text eol=lf
 LICENSE text eol=lf
+
+# 对常见二进制文件做明确设置
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary
+*.tar binary
