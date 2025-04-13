@@ -1,7 +1,7 @@
 # BeautyFetcher
 Python 脚本获取 24fa meiru.neocities.org xerocos.com 和 fuligirl.top 美女图片下载
 
-![Watchers](https://img.shields.io/github/watchers/469138946ba5fa/BeautyFetcher) ![Stars](https://img.shields.io/github/stars/469138946ba5fa/BeautyFetcher) ![Forks](https://img.shields.io/github/forks/469138946ba5fa/BeautyFetcher) ![Vistors](https://visitor-badge.laobi.icu/badge?page_id=469138946ba5fa.Python-script-EEBBK-learning-computer-H6-learning-materials-download) ![LICENSE](https://img.shields.io/badge/license-CC%20BY--SA%204.0-green.svg)
+![Watchers](https://img.shields.io/github/watchers/469138946ba5fa/BeautyFetcher) ![Stars](https://img.shields.io/github/stars/469138946ba5fa/BeautyFetcher) ![Forks](https://img.shields.io/github/forks/469138946ba5fa/BeautyFetcher) ![Vistors](https://visitor-badge.laobi.icu/badge?page_id=469138946ba5fa.BeautyFetcher) ![LICENSE](https://img.shields.io/badge/license-CC%20BY--SA%204.0-green.svg)
 <a href="https://star-history.com/#469138946ba5fa/BeautyFetcher&Date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=469138946ba5fa/BeautyFetcher&type=Date&theme=dark" />
