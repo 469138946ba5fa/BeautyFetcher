@@ -63,10 +63,13 @@ import requests
 from bs4 import BeautifulSoup
 
 # ---------------------- 全局配置参数 ----------------------
+# 美图网
 BASE_URL = "https://fuligirl.top"
-# 备用图片源——最近发现 https://telegraph-image.pages.dev/file 似乎不正常
-# 备用图片源——最近发现 https://im.gurl.eu.org/file 似乎不正常
-TG_URL = "https://telegraph-image.pages.dev/file"
+
+# 原始图片源 https://teleimgs.netlib.re/file
+# 备用图片源——最近发现 https://telegraph-image.pages.dev/file
+# 备用图片源——最近发现 https://im.gurl.eu.org/file
+TG_URL = "https://teleimgs.netlib.re/file"
 DEFAULT_TARGET_DIR = "美女图集"
 DEFAULT_RETRY_MAX = 5
 DEFAULT_PAGE_SLEEP = 10      # 每个分页处理完后的休眠秒数
