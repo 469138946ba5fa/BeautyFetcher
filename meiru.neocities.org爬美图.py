@@ -192,11 +192,17 @@ def process_gallery(session, b_url, retry, page_sleep, image_sleep, output_dir):
         divs = c_soup.select("div.p-2 div:first-child a[href]")
         d_urls = [div.get("href") for div in divs]
         try:
-            d_names = [
-                div.find("img", {"class": "rounded-lg shadow-sm w-full h-72 md:h-96 object-cover"})
-                   .get("alt", "未知专辑")
-                for div in divs
-            ]
+            d_names = []
+            for div in divs:
+                # 优先取 <a> 标签里的名字
+                a_tag = div.find("div", {"class": "text-center font-semibold"})
+                if a_tag and a_tag.find("a"):
+                    name = a_tag.find("a").get_text(strip=True)
+                else:
+                    # 如果 <a> 不存在，就退回到 img 的 alt
+                    img_tag = div.find("img", {"class": "rounded-lg shadow-sm w-full h-72 md:h-96 object-cover"})
+                    name = img_tag.get("alt", "未知专辑") if img_tag else "未知专辑"
+                d_names.append(name)
         except Exception as e:
             logging.error("提取详情页名称出错: %s", e)
             d_names = ["未知专辑"] * len(d_urls)
