@@ -79,7 +79,8 @@ BASE_URL = "https://meiru.neocities.org"
 TG_URL = "https://teleimgs.netlib.re/file"
 DEFAULT_TARGET_DIR = "美女图集"
 DEFAULT_RETRY_MAX = 5
-DEFAULT_PAGE_SLEEP = 10      # 每个分页处理后等待时间（秒）
+#DEFAULT_PAGE_SLEEP = 10      # 每个分页处理后等待时间（秒）
+DEFAULT_PAGE_SLEEP = 1      # 每个分页处理后等待时间（秒）
 DEFAULT_IMAGE_SLEEP = 3      # 每张图片下载后等待时间（秒）
 DEFAULT_CONCURRENCY = 4      # 并发处理专辑链接数量
 
@@ -126,24 +127,65 @@ def check_url_exists(test_url):
     """判断给定链接是否在跳过链接集中。"""
     return test_url in SKIP_URLS
 
-def parse_pagination(soup):
+def parse_pagination(soup, base_url=None):
     """
-    从页面中 <div id="pagination"></div> 内获取分页信息：
-      - 通过 CSS 选择器取最后一个 div 下的倒数第二个 <a> 的 href，
-      - 解析出页面总数（例如：href="/?page=226" 得到226）
-      - 同时返回基准链接（例如通过 rsplit 得到 "https://meiru.neocities.org/page/"）
-    若解析失败则默认返回 (1, None)。
+    更鲁棒地解析分页：
+    - 在 div#pagination 下找到所有有 href 的 <a>
+    - 尝试从 <a> 的文本或 href 中提取页码，取最大值作为总页数
+    - 计算出一个 base_pag_url（可用于拼接后续分页）
+    返回 (total_pages:int, base_pag_url:str|None)
     """
     try:
-        pager_tag = soup.select_one("div#pagination div:last-child div:last-child a:nth-last-child(2)")
-        if pager_tag:
-            href = pager_tag.get("href", "")
-            total_pages = int(href.split("/")[-2])
-            base_pag_url = href.rsplit('/', 2)[0] + '/'
-            return total_pages, base_pag_url
+        pager_links = soup.select("div#pagination a[href]")
+        if not pager_links:
+            return 1, None
+
+        page_numbers = set()
+        last_href = None
+        for a in pager_links:
+            href = a.get("href", "").strip()
+            text = a.get_text(strip=True)
+            # 优先用可转 int 的文本
+            if text.isdigit():
+                page_numbers.add(int(text))
+                last_href = href
+                continue
+            # 否则尝试从 href 中提取 page/123 或 ?page=123
+            m = re.search(r'page[=/](\d+)', href)
+            if m:
+                page_numbers.add(int(m.group(1)))
+                last_href = href
+
+        if not page_numbers:
+            return 1, None
+
+        total_pages = max(page_numbers)
+
+        # 规范化 last_href 为绝对地址（若提供了 base_url）
+        if base_url and last_href:
+            last_href = urljoin(base_url, last_href)
+
+        base_pag_url = None
+        if last_href:
+            # 处理 ?page=123 的情况 -> 保留 ?page= 前缀
+            if '?page=' in last_href:
+                idx = last_href.find('?page=')
+                base_pag_url = last_href[:idx + len('?page=')]
+            else:
+                # 处理 /page/123/ 的情况 -> 保留到 '/page/'
+                m2 = re.search(r'(.*/page/)', last_href)
+                if m2:
+                    base_pag_url = m2.group(1)
+                else:
+                    # 最后兜底：取 last_href 的目录部分
+                    parsed = urlparse(last_href)
+                    path = parsed.path
+                    base_pag_url = urljoin(last_href, '../')
+
+        return int(total_pages), base_pag_url
     except Exception as e:
         logging.error("解析分页出错: %s", e)
-    return 1, None
+        return 1, None
 
 def get_gallery_links(page_content):
     """
@@ -264,22 +306,42 @@ def process_gallery(session, b_url, retry, page_sleep, image_sleep, output_dir):
         time.sleep(page_sleep)
 def process_home_page(session, base_url, retry=DEFAULT_RETRY_MAX):
     """
-    请求首页 (a_url)，解析出总分页数，并构造所有列表页的 URL 列表。
+    使用 parse_pagination 得到总页数与 base_pag_url，返回所有列表页完整 URL 列表。
     """
     a_content = request_with_retry(session, base_url, max_retries=retry)
     if not a_content:
         logging.error("无法获取主页: %s", base_url)
         return []
+
     a_soup = BeautifulSoup(a_content, "html.parser")
-    a_pager, _ = parse_pagination(a_soup)
-    logging.info("主页总分页数: %d", a_pager)
+    total_pages, base_pag_url = parse_pagination(a_soup, base_url=base_url)
+    logging.info("主页总分页数: %d, base_pag_url: %s", total_pages, base_pag_url)
+
     home_pages = []
-    for i in range(1, a_pager + 1):
-        if i == 1:
-            home_pages.append(base_url)
-        else:
-            home_pages.append(BASE_URL.rstrip('/') + '/page/' + str(i) + '/')
-    return home_pages
+    # 若检测到 base_pag_url（/page/ 或 ?page=），用它拼接；否则回退到 base_url + '/page/X/'
+    if base_pag_url:
+        for i in range(1, total_pages + 1):
+            if i == 1:
+                home_pages.append(base_url)
+            else:
+                # base_pag_url 里可能已包含完整前缀，使用 urljoin 来保证安全
+                home_pages.append(urljoin(base_pag_url, str(i) + '/'))
+    else:
+        for i in range(1, total_pages + 1):
+            if i == 1:
+                home_pages.append(base_url)
+            else:
+                home_pages.append(base_url.rstrip('/') + '/page/' + str(i) + '/')
+
+    # 去重并保持顺序（防止重复链接）
+    seen = set()
+    unique_pages = []
+    for p in home_pages:
+        if p not in seen:
+            seen.add(p)
+            unique_pages.append(p)
+
+    return unique_pages
 
 def process_listing_page(session, page_url):
     """
