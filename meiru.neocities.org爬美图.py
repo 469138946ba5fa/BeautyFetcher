@@ -79,8 +79,7 @@ BASE_URL = "https://meiru.neocities.org"
 TG_URL = "https://teleimgs.netlib.re/file"
 DEFAULT_TARGET_DIR = "美女图集"
 DEFAULT_RETRY_MAX = 5
-#DEFAULT_PAGE_SLEEP = 10      # 每个分页处理后等待时间（秒）
-DEFAULT_PAGE_SLEEP = 1      # 每个分页处理后等待时间（秒）
+DEFAULT_PAGE_SLEEP = 10      # 每个分页处理后等待时间（秒）
 DEFAULT_IMAGE_SLEEP = 3      # 每张图片下载后等待时间（秒）
 DEFAULT_CONCURRENCY = 4      # 并发处理专辑链接数量
 
