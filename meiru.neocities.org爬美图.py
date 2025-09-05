@@ -192,9 +192,10 @@ def get_gallery_links(page_content):
     从列表页 HTML 中提取所有专辑链接。
     目标：在 <div class="p-2"></div> 内部找到 <div class="text-sm text-gray-500 text-center"> 下的 <a href=""> 链接集合，
     并返回每个专辑的绝对链接。
+    改为：提取 <div class="text-center font-semibold"> 里的 <a>
     """
     soup = BeautifulSoup(page_content, "html.parser")
-    links = soup.select('div.p-2 div.text-sm.text-gray-500.text-center a[href]')
+    links = soup.select('div.text-center.font-semibold a[href]')
     gallery_urls = [urljoin(BASE_URL, link['href']) for link in links]
     return gallery_urls
 def process_gallery(session, b_url, retry, page_sleep, image_sleep, output_dir):
@@ -231,23 +232,10 @@ def process_gallery(session, b_url, retry, page_sleep, image_sleep, output_dir):
         logging.info("处理专辑内第 %d 页: %s", k, c_b_pager_url)
         c_soup = BeautifulSoup(c_b_pager_content, "html.parser")
         # 从每个分页中提取详情条目：选择器 'div.p-2 div:first-child a[href]'
-        divs = c_soup.select("div.p-2 div:first-child a[href]")
-        d_urls = [div.get("href") for div in divs]
-        try:
-            d_names = []
-            for div in divs:
-                # 优先取 <a> 标签里的名字
-                a_tag = div.find("div", {"class": "text-center font-semibold"})
-                if a_tag and a_tag.find("a"):
-                    name = a_tag.find("a").get_text(strip=True)
-                else:
-                    # 如果 <a> 不存在，就退回到 img 的 alt
-                    img_tag = div.find("img", {"class": "rounded-lg shadow-sm w-full h-72 md:h-96 object-cover"})
-                    name = img_tag.get("alt", "未知专辑") if img_tag else "未知专辑"
-                d_names.append(name)
-        except Exception as e:
-            logging.error("提取详情页名称出错: %s", e)
-            d_names = ["未知专辑"] * len(d_urls)
+        # 直接选详情页入口 <div class="text-center font-semibold"> 里的 a
+        a_tags = c_soup.select("div.text-center.font-semibold a[href]")
+        d_urls = [a.get("href") for a in a_tags]
+        d_names = [a.get_text(strip=True) for a in a_tags]
 
         d_count = len(d_urls)
         logging.info("专辑内第 %d 页中共找到 %d 个详情条目", k, d_count)
