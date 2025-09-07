@@ -14,6 +14,7 @@ Python 脚本获取 24fa meiru.neocities.org xerocos.com 和 fuligirl.top 美女
     .
     ├── 24fa爬美图.py                                # 24fa 链接的Python脚本  
     ├── xerocos.com爬美图.py                         # xerocos.com 链接的Python脚本  
+    ├── mitaku.net爬美图.py                          # mitaku.net 链接的Python脚本  
     ├── meiru.neocities.org爬美图.py                 # meiru.neocities.org 链接的Python脚本  
     ├── fuligirl.top爬美图.py                        # fuligirl.top 链接的Python脚本  
     └── README.md                                   # 这个是说明文件   
