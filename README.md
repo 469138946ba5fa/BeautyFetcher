@@ -20,7 +20,7 @@ Python 脚本获取 24fa meiru.neocities.org xerocos.com 和 fuligirl.top 美女
     └── README.md                                   # 这个是说明文件   
 
 # 注意：
-xerocos.com 美图网挂了，哎可惜了
+xerocos.com meiru.neocities.org 美图网挂了，哎可惜了
 
 # 起因：
   > 我承认我是懦夫，也没办法自我了断，生活的痛苦，互联网的痛苦，那些人，让我持续的感到痛苦，我其实也不想出生的，若是以后我有了钱，我会选择安乐的，唉，现在只有女人才能让我感到短暂的快乐，缓解痛苦，所以才开发了这个脚本
